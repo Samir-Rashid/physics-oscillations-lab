@@ -12,7 +12,6 @@ namespace UnityTemplateProjects
             public float x;
             public float y;
             public float z;
-
             public void SetFromTransform(Transform t)
             {
                 pitch = t.eulerAngles.x;
@@ -38,22 +37,28 @@ namespace UnityTemplateProjects
                 pitch = Mathf.Lerp(pitch, target.pitch, rotationLerpPct);
                 roll = Mathf.Lerp(roll, target.roll, rotationLerpPct);
 
-                x = Mathf.Lerp(x, target.x, positionLerpPct);
-                y = Mathf.Lerp(y, target.y, positionLerpPct);
-                z = Mathf.Lerp(z, target.z, positionLerpPct);
+                // x = Mathf.Lerp(x, target.x, positionLerpPct);
+                // y = Mathf.Lerp(y, target.y, positionLerpPct);
+                // z = Mathf.Lerp(z, target.z, positionLerpPct);
             }
 
             public void UpdateTransform(Transform t)
             {
                 pitch = Mathf.Clamp(pitch, -90f, 90f);
                 t.eulerAngles = new Vector3(pitch, yaw, roll);
-                t.position = new Vector3(x, y, z);
+                // t.position = new Vector3(x, y, z);
             }
         }
 
         CameraState m_TargetCameraState = new CameraState();
         CameraState m_InterpolatingCameraState = new CameraState();
+        public GravityPlayer gravityPlayer;
         public CharacterController controller;
+        public float gravity = -9.81f;
+        public Transform groundCheck;
+        public float groundDistance = 0.4f;
+        public LayerMask groundMask;
+        public bool isGrounded;
 
         [Header("Movement Settings")]
         [Tooltip("Exponential boost factor on translation, controllable by mouse wheel.")]
@@ -98,13 +103,8 @@ namespace UnityTemplateProjects
             {
                 direction += Vector3.right;
             }
-            if (Input.GetKey(KeyCode.Q))
-            {
-                direction += Vector3.down;
-            }
-            if (Input.GetKey(KeyCode.E))
-            {
-                direction += Vector3.up;
+            if (isGrounded && Input.GetKey(KeyCode.Space)) {
+              gravityPlayer.Jump();
             }
             return direction;
         }
@@ -150,7 +150,7 @@ namespace UnityTemplateProjects
             // Speed up movement when shift key held
             if (Input.GetKey(KeyCode.LeftShift))
             {
-                translation *= 3.0f;
+                translation *= 2.0f;
             }
 
             // Modify movement by a boost factor (defined in Inspector and modified in play mode through the mouse scroll wheel)
@@ -165,9 +165,37 @@ namespace UnityTemplateProjects
             m_InterpolatingCameraState.LerpTowards(m_TargetCameraState, positionLerpPct, rotationLerpPct);
 
             m_InterpolatingCameraState.UpdateTransform(transform);
+            Vector3 move = translation.x * transform.right + translation.z * transform.forward + translation.y * transform.up;
 
-            Vector3 move = translation.x * transform.right + translation.y * transform.forward;
             controller.Move(move);
+
+
+            // // Add movement due to gravity
+            // velocityDueToGravity = transform.up * (velocityDueToGravity.y + gravity * Time.deltaTime);
+            isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, groundMask);
+            // if (isGrounded && velocityDueToGravity.y < 0) {
+            //   gravityPlayer.StickToGround();
+            // }
+            //
+            // // move += velocityDueToGravity * Time.deltaTime;
+            // // controller.Move(move);
+            // controller.Move(velocityDueToGravity * Time.deltaTime);
+            //
+            //
+            // // vertical movement keys
+            // Vector3 yChange = transform.up * 0;
+            // if (Input.GetKey(KeyCode.Q))
+            // {
+            //     yChange += Vector3.down;
+            //     velocityDueToGravity = transform.up * 0;
+            // }
+            // if (Input.GetKey(KeyCode.E))
+            // {
+            //     yChange += Vector3.up;
+            //     velocityDueToGravity = transform.up * 0;
+            // }
+            // controller.Move(yChange * boost * Time.deltaTime);
+
         }
     }
 
