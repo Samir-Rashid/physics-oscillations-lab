@@ -10,7 +10,7 @@ namespace UnityTemplateProjects
     public float gravity = -9.81f;
     Vector3 velocityDueToGravity;
     Vector3 move;
-    public float jumpHeight = 0.5f; // this does nothing for no good reason? WHY DOESN'T IT WORK
+    public float jumpHeight = 3.0f;
     public SimpleCameraController parent;
 
     public void Jump()
